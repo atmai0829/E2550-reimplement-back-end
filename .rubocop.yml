@@ -1,0 +1,31 @@
+---
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+# Disable Style/Documentation for missing top-level documentation comments
+# See https://rubocop.readthedocs.io/en/latest/cops_style/#styledocumentation
+Style/Documentation:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Metrics/BlockLength:
+  Max: 120
+  Exclude:
+    - 'db/**/*.rb'
+
+Metrics/MethodLength:
+    Max: 20
+    Exclude:
+      - 'db/**/*.rb'
+
+Metrics/AbcSize:
+  Max: 20
+  Exclude:
+    - 'db/**/*.rb'
+Style/StringLiterals:
+  Enabled: true
+  EnforcedStyle: single_quotes
+  Exclude:
+      - 'db/**/*.rb'
