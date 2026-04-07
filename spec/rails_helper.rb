@@ -85,6 +85,8 @@ RSpec.configure do |config|
     # fallback for older Rails / rspec-rails
     config.fixture_path = Rails.root.join('spec/fixtures')
   end
+  # Since we're using Factory Bot instead of fixtures, we don't need fixture_path
+  # config.fixture_path is deprecated in newer RSpec versions anyway
 
   # We're using DatabaseCleaner instead of transactional fixtures
   # config.use_transactional_fixtures = false

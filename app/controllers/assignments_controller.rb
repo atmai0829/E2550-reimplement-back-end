@@ -26,6 +26,15 @@ class AssignmentsController < ApplicationController
   # PATCH/PUT /assignments/:id
   def update
     assignment = Assignment.find(params[:id])
+
+    # When the frontend sends assignment_questionnaires_attributes without ids,
+    # clear existing records first to avoid duplicates.
+    if params[:assignment]&.key?(:assignment_questionnaires_attributes)
+      incoming = params[:assignment][:assignment_questionnaires_attributes]
+      has_ids = incoming.is_a?(Array) && incoming.any? { |aq| aq[:id].present? }
+      assignment.assignment_questionnaires.destroy_all unless has_ids
+    end
+
     if assignment.update(assignment_params)
       render json: assignment, status: :ok
     else
@@ -151,7 +160,7 @@ class AssignmentsController < ApplicationController
   end
 
   # check if assignment has topics
-  # has_topics is set to true if there is SignUpTopic corresponding to the input assignment id 
+  # has_topics is set to true if there is ProjectTopic corresponding to the input assignment id 
   def has_topics
     assignment = Assignment.find_by(id: params[:assignment_id])
     if assignment.nil?
@@ -214,20 +223,36 @@ class AssignmentsController < ApplicationController
   # Only allow a list of trusted parameters through.
   def assignment_params
     params.require(:assignment).permit(
-      :name, :directory_path, :submitter_count, :private, :num_reviews, :num_review_of_reviews,
-      :num_review_of_reviewers, :reviews_visible_to_all, :num_reviewers, :spec_location,
-      :max_team_size, :staggered_deadline, :allow_suggestions, :days_between_submissions,
-      :review_assignment_strategy, :max_reviews_per_submission, :review_topic_threshold,
-      :copy_flag, :rounds_of_reviews, :microtask, :require_quiz, :num_quiz_questions,
-      :is_coding_assignment, :is_intelligent, :calculate_penalty, :late_policy_id,
-      :is_penalty_calculated, :max_bids, :show_teammate_reviews, :availability_flag,
-      :use_bookmark, :can_review_same_topic, :can_choose_topic_to_review, :is_calibrated,
-      :is_selfreview_enabled, :reputation_algorithm, :is_anonymous, :num_reviews_required,
-      :num_metareviews_required, :num_metareviews_allowed, :num_reviews_allowed, :simicheck,
-      :simicheck_threshold, :is_answer_tagging_allowed, :has_badge,
-      :allow_selecting_additional_reviews_after_1st_round, :sample_assignment_id,
-      :instructor_id, :course_id, :enable_pair_programming, :has_teams, :has_topics,
-      :availability_flag, :allow_suggestions,
+      :name,
+      :directory_path,
+      :spec_location,
+      :private,
+      :require_quiz,
+      :has_badge,
+      :staggered_deadline,
+      :is_calibrated,
+      :has_teams,
+      :max_team_size,
+      :show_teammate_reviews,
+      :enable_pair_programming,
+      :has_topics,
+      :review_topic_threshold,
+      :max_reviews_per_submission,
+      :review_assignment_strategy,
+      :vary_by_round,
+      :num_reviews_allowed,
+      :num_reviews_required,
+      :is_anonymous,
+      :is_selfreview_enabled,
+      :reviews_visible_to_all,
+      :rounds_of_reviews,
+      :days_between_submissions,
+      :late_policy_id,
+      :is_penalty_calculated,
+      :calculate_penalty,
+      :availability_flag,
+      :instructor_id,
+      :course_id,
       assignment_questionnaires_attributes: [:id, :questionnaire_id, :used_in_round, :questionnaire_weight, :_destroy]
     )
   end
@@ -237,7 +262,7 @@ class AssignmentsController < ApplicationController
     topic_id = SignedUpTeam
                .joins(team: :teams_users)
                .where(teams_users: { user_id: current_user.id, team_id: Team.where(parent_id: assignment.id).pluck(:id) })
-               .pluck(:sign_up_topic_id)
+               .pluck(:project_topic_id)
                .first
 
     assignment.staggered_and_no_topic?(topic_id)
