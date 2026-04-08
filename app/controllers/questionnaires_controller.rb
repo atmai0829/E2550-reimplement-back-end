@@ -3,7 +3,7 @@ class QuestionnairesController < ApplicationController
   # Index method returns the list of JSON objects of the questionnaire
   # GET on /questionnaires
   def index
-    @questionnaires = Questionnaire.order(:id)
+    @questionnaires = Questionnaire.includes(:instructor).order(:id)
     render json: @questionnaires, status: :ok and return
   end
   
